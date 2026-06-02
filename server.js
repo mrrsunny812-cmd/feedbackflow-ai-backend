@@ -18,7 +18,7 @@ const sprintRoutes = require("./routes/sprints");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+const mongoUri = process.env.MONGODB_URL;
 
 mongoose.set("bufferCommands", false);
 
@@ -70,7 +70,7 @@ app.use("/api", (req, res, next) => {
   return res.status(503).json({
     error: "Database unavailable",
     message:
-      "MongoDB is not connected. Check backend logs and your MONGODB_URI/DNS/network settings.",
+      "MongoDB is not connected. Check backend logs and your MONGODB_URL/DNS/network settings.",
   });
 });
 
@@ -108,17 +108,20 @@ const explainMongoError = (err) => {
 
 const connectToMongo = async () => {
   if (!mongoUri) {
-    console.error("Missing MongoDB URI. Set MONGODB_URI in backend/.env");
+    console.error(
+      "MongoDB connection failed: missing MONGODB_URL environment variable.",
+    );
     return;
   }
 
   try {
+    console.log("MongoDB connection starting with MONGODB_URL.");
     await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 10000,
     });
-    console.log("MongoDB connected");
+    console.log(`MongoDB connection successful: ${mongoose.connection.host}`);
   } catch (err) {
-    console.error("MongoDB connection error:", err);
+    console.error("MongoDB connection failed:", err);
     console.error("MongoDB connection help:", explainMongoError(err));
   }
 };
